@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "node": "npx hardhat node",
+    "clean": "npx hardhat clean",
+    "compile": "npm run clean && npx hardhat compile",
+    "deploy": "npm run compile && npx hardhat ignition deploy ./ignition/modules/CarRegistrationSystem.js --network localhost",
+    "observe": "remixd -s C:/Users/olegi/Desktop/diplom/car-registration-ethereum --remix-ide https://remix.ethereum.org"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2",
+    "solidity-struct-parser": "^1.0.1"
+  }
+}
