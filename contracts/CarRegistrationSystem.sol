@@ -11,10 +11,11 @@ contract CarRegistrationSystem is AccessControlEnumerable {
   mapping (string => uint) public dutiesList;
 
   
-  constructor (string memory _VIN, string memory _data) {
+  constructor (string memory _VIN) {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _grantRole(VALIDATOR_ROLE, msg.sender);
 
-    Car storage car = cars["123"];
+    Car storage car = cars[_VIN];
 
     car.insurancePolices[0] = InsurancePolicy("1", "11");
     car.insurancePolicesSize++;
@@ -32,11 +33,11 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     car.registrationDatesSize = 3;
     
     car.duties.push("AUTO_LICENSE_PLATES");
-    car.duties.push("VEHICLE_REGISTRATION_SERTIFICATE");
+    car.duties.push("VEHICLE_REGISTRATION_CERTIFICATE");
 
     dutiesList["AUTO_LICENSE_PLATES"] = 0.006 ether;
-    dutiesList["MOTORCICLE_LICENSE_PLATES"] =  0.0045 ether;
-    dutiesList["VEHICLE_REGISTRATION_SERTIFICATE"] =  0.0015 ether;
+    dutiesList["MOTORCYCLE_LICENSE_PLATES"] =  0.0045 ether;
+    dutiesList["VEHICLE_REGISTRATION_CERTIFICATE"] =  0.0015 ether;
     dutiesList["CHANGE_PASSPORT_VEHICLE"] =  0.001 ether;
     dutiesList["ISSUANCE_VEHICLE_PASSPORT"] =  0.0024 ether;
   }
@@ -70,9 +71,22 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     string[] duties;
   }
 
+  function getRegistrationDates (string calldata _VIN) external view returns(RegistrtionDate[] memory) {
+    Car storage car = cars[_VIN];
+    mapping (uint => RegistrtionDate) storage registrationDatesMapping = car.registrationDates;
+    uint sizeRD = car.registrationDatesSize;
 
+    RegistrtionDate[] memory registrationDates = new RegistrtionDate[](sizeRD);
 
-  function _getInsurancePolices (string calldata _VIN) external view returns(InsurancePolicy[] memory, uint) {
+    for (uint i = 0; i < sizeRD; ++i) 
+    {
+      registrationDates[i] = registrationDatesMapping[i];
+    }
+
+    return registrationDates;
+  }
+
+  function getInsurancePolices (string calldata _VIN) external view returns(InsurancePolicy[] memory) {
     Car storage car = cars[_VIN];
     mapping (uint => InsurancePolicy) storage insurancePolicesMapping = car.insurancePolices;
     uint sizeIP = car.insurancePolicesSize;
@@ -84,10 +98,10 @@ contract CarRegistrationSystem is AccessControlEnumerable {
       insurancePolices[i] = insurancePolicesMapping[i];
     }
 
-    return (insurancePolices, sizeIP);
+    return insurancePolices;
   }
 
-  function _getVehiclePasports (string calldata _VIN) internal view returns(VehiclePasport[] memory, uint) {
+  function getVehiclePasports (string calldata _VIN) external view returns(VehiclePasport[] memory) {
     Car storage car = cars[_VIN];
     mapping (uint => VehiclePasport) storage vehiclePasportsMapping = car.vehiclePasports;
     uint sizeVP = car.vehiclePasportsSize;
@@ -99,10 +113,10 @@ contract CarRegistrationSystem is AccessControlEnumerable {
       vehiclePasports[i] = vehiclePasportsMapping[i];
     }
 
-    return (vehiclePasports, sizeVP);
+    return vehiclePasports;
   }
 
-  function getInsurancePolices (string calldata _VIN, uint _index) 
+  function getInsurancePolice (string calldata _VIN, uint _index) 
   external 
   view 
   returns(string memory, string memory, string memory) {
@@ -124,6 +138,15 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     Car storage car = cars[_VIN];
 
     car.insurancePolices[car.insurancePolicesSize] = InsurancePolicy(_series, _number);
+    car.insurancePolicesSize++;
+  }
+
+  function addInsurancePolices (string calldata _VIN, InsurancePolicy calldata insurancePolice) external  {
+    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to add insurance police");
+
+    Car storage car = cars[_VIN];
+
+    car.insurancePolices[car.insurancePolicesSize] = insurancePolice;
     car.insurancePolicesSize++;
   }
 
@@ -257,6 +280,15 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     return cars[_VIN].duties;
   }
 
+  function addCarDuty(string calldata _VIN, string calldata _duty) external {
+    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to add car duty");
+    require(dutiesList[_duty] != 0, "Duty does not exists");
+
+    Car storage car = cars[_VIN];
+
+    car.duties.push(_duty);
+  }
+
   function getDutiesSize(string memory _VIN) external view returns(uint) {
     return cars[_VIN].duties.length;
   }
@@ -284,4 +316,37 @@ contract CarRegistrationSystem is AccessControlEnumerable {
 
     delete dutiesList[name];
   }
+
+  function isExistsCar(string calldata _VIN) external view returns(bool) {
+    Car storage car = cars[_VIN];
+
+    if (car.insurancePolicesSize != 0 || car.vehiclePasportsSize != 0 || car.registrationDatesSize != 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function payDuties(string calldata _VIN) external payable {
+    uint amount = getAmountDuties(_VIN);
+    
+    require(amount != 0, "Duties does not exists");
+    require(msg.value >= amount, "Not enought ethers");
+
+
+    uint refund = msg.value - amount;
+    if (refund > 0) {
+      payable(msg.sender).transfer(refund);
+    }
+    
+    delete cars[_VIN].duties;
+  }
+
+  function getBalance () external view returns(uint) {
+    return address(this).balance;
+  }
+
+  receive() external payable { }
+
+  fallback() external payable { }
 }
