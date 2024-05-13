@@ -24,13 +24,13 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     car.insurancePolices[2] = InsurancePolicy("3", "33");
     car.insurancePolicesSize++;
 
-    car.vehiclePasports[0] = VehiclePasport("54", unicode"ЖМА", "875473");
-    car.vehiclePasportsSize++;
+    car.vehiclePassports[0] = Vehiclepassport("54", unicode"ЖМА", "875473");
+    car.vehiclePassportsSize++;
 
-    car.registrationDates[0] = RegistrtionDate(0, 1619331680);
+    car.registrationDates[0] = RegistrtionDate(0, 1587795681);
     car.registrationDates[1] = RegistrtionDate(1587795681, 1619331681);
     car.registrationDates[2] = RegistrtionDate(1619331682, 0);
-    car.registrationDatesSize = 3;
+    car.registrationDatesSize += 3;
     
     car.duties.push("AUTO_LICENSE_PLATES");
     car.duties.push("VEHICLE_REGISTRATION_CERTIFICATE");
@@ -42,7 +42,7 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     dutiesList["ISSUANCE_VEHICLE_PASSPORT"] =  0.0024 ether;
   }
 
-  struct VehiclePasport {
+  struct Vehiclepassport {
     string region;
     string series;
     string number;
@@ -62,8 +62,8 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     mapping (uint => InsurancePolicy) insurancePolices;
     uint insurancePolicesSize;
 
-    mapping (uint => VehiclePasport) vehiclePasports;
-    uint vehiclePasportsSize;
+    mapping (uint => Vehiclepassport) vehiclePassports;
+    uint vehiclePassportsSize;
 
     mapping (uint => RegistrtionDate) registrationDates;
     uint registrationDatesSize;
@@ -101,19 +101,19 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     return insurancePolices;
   }
 
-  function getVehiclePasports (string calldata _VIN) external view returns(VehiclePasport[] memory) {
+  function getVehiclePassports (string calldata _VIN) external view returns(Vehiclepassport[] memory) {
     Car storage car = cars[_VIN];
-    mapping (uint => VehiclePasport) storage vehiclePasportsMapping = car.vehiclePasports;
-    uint sizeVP = car.vehiclePasportsSize;
+    mapping (uint => Vehiclepassport) storage vehiclePassportsMapping = car.vehiclePassports;
+    uint sizeVP = car.vehiclePassportsSize;
 
-    VehiclePasport[] memory vehiclePasports = new VehiclePasport[](sizeVP);
+    Vehiclepassport[] memory vehiclePassports = new Vehiclepassport[](sizeVP);
 
     for (uint i = 0; i < sizeVP; ++i) 
     {
-      vehiclePasports[i] = vehiclePasportsMapping[i];
+      vehiclePassports[i] = vehiclePassportsMapping[i];
     }
 
-    return vehiclePasports;
+    return vehiclePassports;
   }
 
   function getInsurancePolice (string calldata _VIN, uint _index) 
@@ -192,7 +192,7 @@ contract CarRegistrationSystem is AccessControlEnumerable {
   }
 
   function addRegistrationDate (string memory _VIN, uint _start, uint _end) external  {
-    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to add vehicle pasport");
+    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to add vehicle passport");
 
     Car storage car = cars[_VIN];
 
@@ -225,54 +225,54 @@ contract CarRegistrationSystem is AccessControlEnumerable {
   }
 
 
-  function getVehiclePasport (string calldata _VIN, uint _index) 
+  function getVehiclepassport (string calldata _VIN, uint _index) 
   external 
   view 
   returns(string memory, string memory, string memory, string memory) {
     Car storage car = cars[_VIN];
-    require(_index < car.vehiclePasportsSize, "This vehicle passport does not exist");
+    require(_index < car.vehiclePassportsSize, "This vehicle passport does not exist");
 
-    VehiclePasport memory vp = car.vehiclePasports[_index];
+    Vehiclepassport memory vp = car.vehiclePassports[_index];
 
     return (_VIN, vp.region, vp.series, vp.number);
   }
 
-  function getVehiclePasportsSize (string calldata _VIN) external view returns(uint) {
-    return cars[_VIN].vehiclePasportsSize;
+  function getVehiclePassportsSize (string calldata _VIN) external view returns(uint) {
+    return cars[_VIN].vehiclePassportsSize;
   }
 
-  function addVehiclePasport (string memory _VIN, string memory _region, string memory _series, string memory _number) 
+  function addVehiclepassport (string memory _VIN, string memory _region, string memory _series, string memory _number) 
   external  {
-    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to add vehicle pasport");
+    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to add vehicle passport");
 
     Car storage car = cars[_VIN];
 
-    car.vehiclePasports[car.vehiclePasportsSize] = VehiclePasport(_region, _series, _number);
-    car.vehiclePasportsSize++;
+    car.vehiclePassports[car.vehiclePassportsSize] = Vehiclepassport(_region, _series, _number);
+    car.vehiclePassportsSize++;
   }
 
-  function editVehiclePasport (string memory _VIN, uint _index, string memory _region, string memory _series, string memory _number) external  {
-    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to edit vehicle pasport");
+  function editVehiclepassport (string memory _VIN, uint _index, string memory _region, string memory _series, string memory _number) external  {
+    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to edit vehicle passport");
 
     Car storage car = cars[_VIN];
-    require(_index < car.vehiclePasportsSize, "This vehicle pasport does not exist");
+    require(_index < car.vehiclePassportsSize, "This vehicle passport does not exist");
 
-    car.vehiclePasports[_index] = VehiclePasport(_region, _series, _number);
+    car.vehiclePassports[_index] = Vehiclepassport(_region, _series, _number);
   }
 
-  function removeVehiclePasport (string memory _VIN, uint _index) external {
-    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to remove vehicle pasport");
+  function removeVehiclepassport (string memory _VIN, uint _index) external {
+    require(hasRole(VALIDATOR_ROLE, msg.sender), "No permission to remove vehicle passport");
 
     Car storage car = cars[_VIN];
-    require(_index < car.vehiclePasportsSize, "This vehicle pasport does not exist");
+    require(_index < car.vehiclePassportsSize, "This vehicle passport does not exist");
 
-    for (uint i = _index; i < car.vehiclePasportsSize - 1; ++i) 
+    for (uint i = _index; i < car.vehiclePassportsSize - 1; ++i) 
     {
-      car.vehiclePasports[i] = car.vehiclePasports[i + 1];
+      car.vehiclePassports[i] = car.vehiclePassports[i + 1];
     }
 
-    delete car.vehiclePasports[car.vehiclePasportsSize - 1];
-    car.vehiclePasportsSize--;
+    delete car.vehiclePassports[car.vehiclePassportsSize - 1];
+    car.vehiclePassportsSize--;
   }
 
 
@@ -320,7 +320,7 @@ contract CarRegistrationSystem is AccessControlEnumerable {
   function isExistsCar(string calldata _VIN) external view returns(bool) {
     Car storage car = cars[_VIN];
 
-    if (car.insurancePolicesSize != 0 || car.vehiclePasportsSize != 0 || car.registrationDatesSize != 0) {
+    if (car.insurancePolicesSize != 0 || car.vehiclePassportsSize != 0 || car.registrationDatesSize != 0) {
       return true;
     }
 
