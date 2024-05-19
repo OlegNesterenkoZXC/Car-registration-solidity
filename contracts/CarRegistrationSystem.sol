@@ -357,7 +357,7 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     );
   }
 
-  function payDuties (string calldata _VIN) 
+  function payCarDuties (string calldata _VIN) 
   external 
   payable {
     uint amount = getAmountDuties(_VIN);
