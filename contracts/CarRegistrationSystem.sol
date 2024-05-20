@@ -2,46 +2,25 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 contract CarRegistrationSystem is AccessControlEnumerable {
   bytes32 public constant EDITOR_ROLE = keccak256("EDITOR");
 
   mapping(string => Car) internal cars;
-  mapping (string => uint) public dutiesList;
+  
+  string[] public dutiesList;
+  mapping(string => uint) public dutiesAmount;
 
 
-  constructor (string memory _VIN) {
+  constructor () {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(EDITOR_ROLE, msg.sender);
-
-    Car storage car = cars[_VIN];
-
-    car.insurancePolicies[0] = InsurancePolicy("1", "11");
-    car.insurancePoliciesSize++;
-    car.insurancePolicies[1] = InsurancePolicy("2", "22");
-    car.insurancePoliciesSize++;
-    car.insurancePolicies[2] = InsurancePolicy("3", "33");
-    car.insurancePoliciesSize++;
-
-    car.vehiclePassports[0] = VehiclePassport("54", unicode"ЖМА", "875473");
-    car.vehiclePassportsSize++;
-
-    car.registrationDates[0] = RegistrationDate(0, 1587795681);
-    car.registrationDates[1] = RegistrationDate(1587795681, 1619331681);
-    car.registrationDates[2] = RegistrationDate(1619331682, 0);
-    car.registrationDatesSize += 3;
-    
-    car.duties.push("AUTO_LICENSE_PLATES");
-    car.duties.push("VEHICLE_REGISTRATION_CERTIFICATE");
-
-    dutiesList["AUTO_LICENSE_PLATES"] = 0.006 ether;
-    dutiesList["MOTORCYCLE_LICENSE_PLATES"] =  0.0045 ether;
-    dutiesList["VEHICLE_REGISTRATION_CERTIFICATE"] =  0.0015 ether;
-    dutiesList["CHANGE_PASSPORT_VEHICLE"] =  0.001 ether;
-    dutiesList["ISSUANCE_VEHICLE_PASSPORT"] =  0.0024 ether;
   }
 
+  struct Duty {
+    string name;
+    uint amount;
+  }
 
   struct VehiclePassport {
     string region;
@@ -301,7 +280,7 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     uint amount = 0;
     for (uint i = 0; i < carDuties.length; ++i) 
     {
-      amount += dutiesList[carDuties[i]];
+      amount += dutiesAmount[carDuties[i]];
     }
     
     return amount;
@@ -323,25 +302,95 @@ contract CarRegistrationSystem is AccessControlEnumerable {
 
   function addCarDuty (string calldata _VIN, string calldata _duty) 
   external
-  hasEditorRole("No permission to add car duty") {
-    require(dutiesList[_duty] != 0, "Duty does not exists");
+  hasEditorRole("No permission to add duty to the car") {
+    bool isExistDuty;
+    (isExistDuty,) = containsString(dutiesList, _duty);
+    
+    require(isExistDuty, "Duty does not exists");
+
+    string[] storage carDuties = cars[_VIN].duties;
+
+    bool isExistCarDuty;
+    (isExistCarDuty,) = containsString(carDuties, _duty);
+    
+    require(!isExistCarDuty, "This duty already exists");
 
     cars[_VIN].duties.push(_duty);
   }
 
+  function removeCarDuty (string calldata _VIN, string calldata _duty)
+  external {
+    string[] storage carDuties = cars[_VIN].duties;
+    require(carDuties.length != 0, "Duty does not exists");
 
-  function editDuty (string calldata name, uint amount)
+    bool isExistCarDuty;
+    uint index;
+    (isExistCarDuty, index) = containsString(dutiesList, _duty);
+
+    require(isExistCarDuty, "Duty does not exists");
+
+    for (uint i = index; i < carDuties.length - 1; ++i)
+    {
+      carDuties[i] = carDuties[i + 1];
+    }
+
+    carDuties.pop();
+  }
+
+  function getDutiesList ()
+  external
+  view
+  returns(string[] memory) {
+    return dutiesList;
+  }
+
+  function getDutiesListLength ()
+  external
+  view
+  returns(uint) {
+    return dutiesList.length;
+  }
+
+  function addDuty (string calldata _name, uint _amount)
   external
   hasAdminRole("No permission to add duty to the car") {
-    dutiesList[name] = amount;
+    bool isExist;
+    (isExist,) = containsString(dutiesList, _name);
+    
+    require(!isExist, "This duty already exists");
+
+    dutiesList.push(_name);
+    dutiesAmount[_name] = _amount;
   }
 
-  function removeDuty (string calldata name) 
+  function editDuty (string calldata _name, uint _amount)
+  external
+  hasAdminRole("No permission to add duty to the car") {
+    bool isExist;
+    (isExist,) = containsString(dutiesList, _name);
+
+    require(isExist, "This duty does not exist");
+
+    dutiesAmount[_name] = _amount;
+  }
+
+  function removeDuty (string calldata _name) 
   external 
-  hasAdminRole("No permission to remove duty to the car") {
-    delete dutiesList[name];
-  }
+  hasAdminRole("No permission to remove duty") {
+    bool isExist;
+    uint index;
+    (isExist, index) = containsString(dutiesList, _name);
 
+    require(isExist, "This duty does not exist");
+
+    for (uint i = index; i < dutiesList.length - 1; ++i)
+    {
+      dutiesList[i] = dutiesList[i + 1];
+    }
+
+    dutiesList.pop();
+    delete dutiesAmount[_name];
+  }
 
   function isExistCar (string calldata _VIN) 
   external 
@@ -371,6 +420,27 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     }
     
     delete cars[_VIN].duties;
+  }
+
+  function containsString(string[] memory _array, string calldata _name)
+  private
+  pure
+  returns(bool, uint) {
+    for (uint i = 0; i < _array.length; ++i)
+    {
+      if (toEqualString(_name, _array[i])) {
+        return (true, i);
+      }
+    }
+
+    return (false, _array.length);
+  }
+
+  function toEqualString (string memory s1, string memory s2)
+  public
+  pure
+  returns(bool) {
+    return (keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2)));
   }
 
   receive() external payable { }
