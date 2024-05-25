@@ -1,7 +1,7 @@
 const jsonServer = require("json-server");
 
-const contractArtifact = require("./ignition/deployments/chain-31337/artifacts/CarRegistrationSystem#CarRegistrationSystem.json");
-const contractDeployedAddress = require("./ignition/deployments/chain-31337/deployed_addresses.json")
+const contractArtifact = require("../ignition/deployments/chain-31337/artifacts/CarRegistrationSystem#CarRegistrationSystem.json");
+const contractDeployedAddress = require("../ignition/deployments/chain-31337/deployed_addresses.json")
 
 
 const config = {
