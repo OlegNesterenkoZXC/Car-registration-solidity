@@ -443,6 +443,21 @@ contract CarRegistrationSystem is AccessControlEnumerable {
     return (keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2)));
   }
 
+  function getBalance ()
+  external
+  view
+  returns(uint) {
+    return address(this).balance;
+  }
+
+  function transfer(address _address, uint _amount)
+  external
+  hasAdminRole("No permission to transfer") {
+    require(address(this).balance <= _amount, "The balance has few funds");
+
+    payable(_address).transfer(_amount);
+  }
+
   receive() external payable { }
 
   fallback() external payable { }
