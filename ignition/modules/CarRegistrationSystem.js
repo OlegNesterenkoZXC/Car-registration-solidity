@@ -26,13 +26,13 @@ module.exports = buildModule("CarRegistrationSystem", (m) => {
   addCarDuty(m, carRegistrationSystem, vin, DUTY.AUTO_LICENSE_PLATES, options, 5)
   addCarDuty(m, carRegistrationSystem, vin, DUTY.CHANGE_PASSPORT_VEHICLE, options, 6)
   
-  addInsurancePolicy(m, carRegistrationSystem, vin, "АА", "11", options, 0)
-  addInsurancePolicy(m, carRegistrationSystem, vin, "ББ", "22", options, 1)
-  addInsurancePolicy(m, carRegistrationSystem, vin, "ВВ", "33", options, 2)
+  addInsurancePolicy(m, carRegistrationSystem, vin, "ААА", "1111111111", options, 0)
+  addInsurancePolicy(m, carRegistrationSystem, vin, "БББ", "2222222222", options, 1)
+  addInsurancePolicy(m, carRegistrationSystem, vin, "ВВВ", "3333333333", options, 2)
 
-  addVehiclePassport(m, carRegistrationSystem, vin, "54", "АА", "11", options, 0)
-  addVehiclePassport(m, carRegistrationSystem, vin, "54", "ББ", "22", options, 1)
-  addVehiclePassport(m, carRegistrationSystem, vin, "54", "ВВ", "33", options, 2)
+  addVehiclePassport(m, carRegistrationSystem, vin, "54", "АА", "111111", options, 0)
+  addVehiclePassport(m, carRegistrationSystem, vin, "54", "ББ", "222222", options, 1)
+  addVehiclePassport(m, carRegistrationSystem, vin, "54", "ВВ", "333333", options, 2)
 
   addRegistrationDate(m, carRegistrationSystem, vin, 0, 1587795681, options, 0)
   addRegistrationDate(m, carRegistrationSystem, vin, 1587795682, 1619331681, options, 1)
