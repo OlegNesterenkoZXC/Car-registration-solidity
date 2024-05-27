@@ -11,15 +11,9 @@ contract CarRegistrationSystem is AccessControlEnumerable {
   string[] public dutiesList;
   mapping(string => uint) public dutiesAmount;
 
-
   constructor () {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(EDITOR_ROLE, msg.sender);
-  }
-
-  struct Duty {
-    string name;
-    uint amount;
   }
 
   struct VehiclePassport {
@@ -319,7 +313,8 @@ contract CarRegistrationSystem is AccessControlEnumerable {
   }
 
   function removeCarDuty (string calldata _VIN, string calldata _duty)
-  external {
+  external
+  hasEditorRole("No permission to remove duty to the car") {
     string[] storage carDuties = cars[_VIN].duties;
     require(carDuties.length != 0, "Duty does not exists");
 
@@ -353,7 +348,7 @@ contract CarRegistrationSystem is AccessControlEnumerable {
 
   function addDuty (string calldata _name, uint _amount)
   external
-  hasAdminRole("No permission to add duty to the car") {
+  hasAdminRole("No permission to add duty") {
     bool isExist;
     (isExist,) = containsString(dutiesList, _name);
     
@@ -365,7 +360,7 @@ contract CarRegistrationSystem is AccessControlEnumerable {
 
   function editDuty (string calldata _name, uint _amount)
   external
-  hasAdminRole("No permission to add duty to the car") {
+  hasAdminRole("No permission to edit duty") {
     bool isExist;
     (isExist,) = containsString(dutiesList, _name);
 
